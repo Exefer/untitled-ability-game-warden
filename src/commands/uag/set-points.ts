@@ -1,17 +1,17 @@
 import { universeId } from "@/config";
 import { formatRobloxProfileLink } from "@/helpers";
 import { RobloxAPI } from "@/lib/roblox-api";
-import { PunchesService } from "@/services/punch.service";
+import { PointsService } from "@/services/points.service";
 import { Command } from "@sapphire/framework";
 import { hyperlink, MessageFlags, PermissionFlagsBits } from "discord.js";
 import { MessagingApi } from "openblox/cloud";
 
-export class UAGSetPunchesCommand extends Command {
+export class UAGSetPointsCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {
       ...options,
-      name: "uag-setpunches",
-      description: "(Staff Only) Sets a player's punches in game.",
+      name: "uag-setpoints",
+      description: "(Staff Only) Sets a player's points in game.",
       detailedDescription: "Only works if the player is not currently in the game.",
       requiredUserPermissions: [PermissionFlagsBits.Administrator],
       preconditions: ["AdminOnly"],
@@ -27,11 +27,11 @@ export class UAGSetPunchesCommand extends Command {
           .addStringOption(option =>
             option
               .setName("target")
-              .setDescription("The Roblox username, ID, or Discord user to set the punches of.")
+              .setDescription("The Roblox username, ID, or Discord user to set the points of.")
               .setRequired(true)
           )
           .addIntegerOption(option =>
-            option.setName("punches").setDescription("The amount of punches to set.").setRequired(true)
+            option.setName("points").setDescription("The amount of points to set.").setRequired(true)
           ),
       { idHints: ["1382740191126753381"] }
     );
@@ -39,7 +39,7 @@ export class UAGSetPunchesCommand extends Command {
 
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     const target = interaction.options.getString("target", true);
-    const punches = interaction.options.getInteger("punches", true);
+    const points = interaction.options.getInteger("points", true);
 
     await interaction.deferReply();
 
@@ -50,23 +50,23 @@ export class UAGSetPunchesCommand extends Command {
       return;
     }
 
-    const punchesEntry = await PunchesService.setPunchesForUser(robloxUser, punches);
+    const pointsEntry = await PointsService.setPointsForUser(robloxUser, points);
 
-    // Update in-game punches value in real-time
+    // Update in-game points value in real-time
     await MessagingApi.publishMessage<{
       targetId: number;
       value: number;
     }>({
       universeId,
-      topic: "uag-setpunches",
-      message: { targetId: Number(robloxUser.id), value: punches },
+      topic: "uag-setpoints",
+      message: { targetId: Number(robloxUser.id), value: points },
     });
 
     await interaction.followUp({
       content: `Successfully set user ${hyperlink(
         robloxUser.data.name,
         formatRobloxProfileLink(robloxUser.id)
-      )} punches to ${punchesEntry.value}.`,
+      )} points to ${pointsEntry.value}.`,
       flags: MessageFlags.SuppressEmbeds,
     });
   }

@@ -2,7 +2,7 @@ import { universeId } from "@/config";
 import { UNIVERSE_GAMEPASSES } from "@/constants";
 import { formatRobloxProfileLink } from "@/helpers";
 import { RobloxAPI } from "@/lib/roblox-api";
-import { PunchesService } from "@/services/punch.service";
+import { PointsService } from "@/services/points.service";
 import { Command } from "@sapphire/framework";
 import { Colors, EmbedBuilder, inlineCode, userMention } from "discord.js";
 import { InventoryApi, UserRestrictionsApi } from "openblox/cloud";
@@ -60,7 +60,7 @@ export class UAGStatsCommand extends Command {
       .then(({ data }) => data.map(pass => pass.gamePassDetails!.gamePassId))
       .catch(() => [] as string[]);
 
-    const punchesEntry = await PunchesService.getPunchesForUser(robloxUser);
+    const pointsEntry = await PointsService.getPointsForUser(robloxUser);
 
     const embed = new EmbedBuilder()
       .setColor(Colors.Blurple)
@@ -69,8 +69,8 @@ export class UAGStatsCommand extends Command {
       .setDescription(`Requested by ${userMention(interaction.user.id)}`)
       .setFields([
         {
-          name: "Punches",
-          value: String(punchesEntry.value),
+          name: "Points",
+          value: String(pointsEntry.value),
           inline: true,
         },
         {
